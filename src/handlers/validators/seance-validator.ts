@@ -191,3 +191,13 @@ export interface GetSeanceByIdRequest {
 export const getSeanceByIdValidation = Joi.object<GetSeanceByIdRequest>({
     id: Joi.number().required()
 })
+
+export interface reservationSeanceRequest {
+    id: number,
+    billetId: number
+}
+
+export const reservationSeanceValidation = Joi.object<reservationSeanceRequest>({
+    id: Joi.number().required(),
+    billetId: Joi.number().required()
+})

@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import { Salle } from "../database/entities/salle";
+import { Seance } from "../database/entities/seance";
 
 export interface UpdateSalleParams {
     name?: string,
@@ -49,8 +50,10 @@ export class SalleUseCase {
     }
 
     async updateSalle(id: number, salleParam: UpdateSalleParams): Promise<Salle | null> {
-        const repo = this.db.getRepository(Salle)
-        const sallefound = await repo.findOneBy({ id })
+        const query = this.db.createQueryBuilder(Salle,'salle')
+        query.leftJoinAndSelect('salle.seances','Seance')
+        query.where('salle.id= :salleId', {salleId: id})
+        const sallefound = await query.getOne()
         if (sallefound === null) return null
 
         if (salleParam.name) {
@@ -79,8 +82,15 @@ export class SalleUseCase {
 
         if(salleParam.isMaintenance !== undefined) {
             sallefound.isMaintenance = salleParam.isMaintenance
+            if (salleParam.isMaintenance === true) {
+                for (let i=0; i < sallefound.seances.length;i++) {
+                    const repoSeance = this.db.getRepository(Seance)
+                    repoSeance.delete(sallefound.seances[i].id)
+                }
+            }
         }
 
+        const repo = this.db.getRepository(Salle)
         const salleUpdate = await repo.save(sallefound)
         return salleUpdate
     }

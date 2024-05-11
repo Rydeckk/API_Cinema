@@ -6,6 +6,9 @@ import { generateValidationErrorMessage } from "./validators/generate-validation
 import { User } from "../database/entities/user";
 import { sign } from "jsonwebtoken";
 import { Token } from "../database/entities/token";
+import { Role } from "../database/entities/role";
+import { authMiddleware } from "./middleware/auth-middleware";
+import { Compte } from "../database/entities/compte";
 
 export const UserHandler = (app: express.Express) => {
     app.post('/auth/signup', async (req: Request, res: Response) => {
@@ -19,13 +22,25 @@ export const UserHandler = (app: express.Express) => {
             const createUserRequest = validationResult.value
             const hashedPassword = await hash(createUserRequest.password, 10);
 
+            const repoRole = AppDataSource.getRepository(Role)
+            const roleFound = await repoRole.findOne({where : {isAdmin: false}})
+            if (roleFound === null) {
+                res.status(404).send({"error": "Aucun role disponible"})
+                return
+            }
+
+            const repoCompte = AppDataSource.getRepository(Compte)
+            const compteCreated = await repoCompte.save({})
+
             const userRepository = AppDataSource.getRepository(User)
             const user = await userRepository.save({
                 email: createUserRequest.email,
-                password: hashedPassword
+                password: hashedPassword,
+                role: roleFound,
+                compte: compteCreated
             });
 
-            res.status(201).send({ id: user.id, email: user.email, createdAt: user.createdAt })
+            res.status(201).send({ id: user.id, email: user.email, createdAt: user.createdAt, role: user.role.name })
             return
         } catch (error) {
             console.log(error)
@@ -60,10 +75,9 @@ export const UserHandler = (app: express.Express) => {
             }
             
             const secret = process.env.JWT_SECRET ?? ""
-            console.log(secret)
             // generate jwt
             const token = sign({ userId: user.id, email: user.email }, secret, { expiresIn: '1d' });
-            // store un token pour un user
+            // stock un token pour un user
             await AppDataSource.getRepository(Token).save({ token: token, user: user })
             res.status(200).json({ token });
         } catch (error) {
@@ -73,6 +87,48 @@ export const UserHandler = (app: express.Express) => {
         }
     })
 
+    app.delete('/auth/logout', authMiddleware , async (req: Request, res: Response) => {
+        try {
+
+            const authHeader = req.headers['authorization'];
+            if (!authHeader) return res.status(401).json({"error": "Unauthorized"});
+
+            const token = authHeader.split(' ')[1];
+            if (token === null) return res.status(401).json({"error": "Unauthorized"});
+
+            const queryToken = AppDataSource.createQueryBuilder(Token, 'token')
+            queryToken.innerJoinAndSelect('token.user','user')
+            queryToken.where('token.token= token',{token: token})
+            const tokenFound = await queryToken.getOne()
+
+            if(!tokenFound) {
+                return res.status(404).json({"error": `Token ${token} not found`});
+            }
+
+            const user = await AppDataSource.getRepository(User).findOneBy({ id: tokenFound.user.id });
+
+            if (!user) {
+                res.status(400).send({ error: "User not found" })
+                return
+            }
+
+            const repoTokenUser = AppDataSource.getRepository(Token)
+            const queryTokens = AppDataSource.createQueryBuilder(Token, 'token')
+            queryTokens.innerJoinAndSelect('token.user','user')
+            queryTokens.where('user.id= :userId',{userId: user.id})
+            const tokensFound = await queryTokens.getMany()
+
+            tokensFound.forEach((token) => {
+                repoTokenUser.delete(token)
+            })
+
+            res.status(200).send("Deconnexion réussi");
+        } catch (error) {
+            console.log(error)
+            res.status(500).send({ "error": "internal error retry later" })
+            return
+        }
+    })
 }
 
 

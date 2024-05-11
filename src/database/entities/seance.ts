@@ -11,7 +11,7 @@ export class Seance {
     capacite: number
 
     @Column({default : 0})
-    nbPlacesPrises?: number
+    nbPlacesPrises: number = 0
 
     @Column()
     type: string

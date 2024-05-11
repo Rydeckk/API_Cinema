@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne } from "typeorm"
 import { Token } from "./token"
 import { Role } from "./role"
+import { Billet } from "./billet"
+import { Compte } from "./compte"
 
 @Entity()
 export class User {
@@ -15,21 +17,29 @@ export class User {
     @Column()
     password: string
 
-    @CreateDateColumn({type: "datetime"})
-    createdAt: Date
-
-    @OneToMany(() => Token, token => token.user)
-    tokens: Token[];
-
     @ManyToOne(() => Role, role => role.id)
     role: Role
 
-    constructor(id: number, email: string, password: string, createdAt: Date, tokens: Token[], role: Role) {
+    @ManyToOne(() => Compte, compte => compte.id)
+    compte: Compte
+
+    @CreateDateColumn({type: "datetime"})
+    createdAt: Date
+
+    @OneToMany(() => Token, token => token.user, {onDelete: 'CASCADE'})
+    tokens: Token[];
+
+    @OneToMany(() => Billet, billet => billet.user, {onDelete: 'CASCADE'})
+    billets: Billet[]
+
+    constructor(id: number, email: string, password: string, role: Role, compte: Compte ,createdAt: Date, tokens: Token[], billets: Billet[]) {
         this.id = id,
         this.email = email,
         this.password = password,
+        this.role = role,
+        this.compte = compte,
         this.createdAt = createdAt,
         this.tokens = tokens,
-        this.role = role
+        this.billets = billets
     }
 }

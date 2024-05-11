@@ -10,7 +10,7 @@ export class Token {
     @Column()
     token: string;
 
-    @ManyToOne(() => User, user => user.tokens)
+    @ManyToOne(() => User, user => user.tokens, {onDelete: 'CASCADE'})
     user: User;
 
     constructor(id: number, token: string, user: User) {

@@ -9,18 +9,16 @@ export class Role {
     @Column()
     name: string
 
-    @Column({
-        unique: true
-    })
-    type: string
+    @Column({default: false})
+    isAdmin: boolean
 
     @OneToMany(() => User, user => user.id)
     users: User[];
 
-    constructor(id: number, name: string, type: string, users: User[]) {
+    constructor(id: number, name: string, isAdmin: boolean, users: User[]) {
         this.id = id,
         this.name = name,
-        this.type = type,
+        this.isAdmin = isAdmin,
         this.users = users
     }
 }
