@@ -17,12 +17,12 @@ import { Seance } from "../../database/entities/seance"
  *       dateDebut:
  *         type: string
  *         format: date-time
- *         description: La date et l'heure de début de la séance au format ISO 8601.
+ *         description: La date et l'heure de début de la séance au format ISO 8601. La date doit correspondre à certaines conditions
  *         example: "2024-05-12T10:00:00Z"
  *       dateFin:
  *         type: string
  *         format: date-time
- *         description: La date et l'heure de fin de la séance au format ISO 8601.
+ *         description: La date et l'heure de fin de la séance au format ISO 8601. La date doit correspondre à certaines conditions
  *         example: "2024-05-12T12:00:00Z"
  *       filmId:
  *         type: integer
