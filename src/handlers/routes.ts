@@ -25,10 +25,40 @@ import { CompteTransaction } from "../database/entities/transaction";
 import { getCompteValidation, updateCompteValidation } from "./validators/compte-validator";
 import { getTransactionsValidation } from "./validators/transactions-validator";
 import { TransactionUseCase } from "../domain/transaction-usecase";
+import { UserHandler } from "./user";
 
 export const initRoutes = (app: express.Express) => {
 
     //#region Routes salle
+    /**
+ * @swagger
+ * /salle:
+ *   post:
+ *     summary: Créer une nouvelle salle.
+ *     description: Crée une nouvelle salle en utilisant les données fournies dans le corps de la requête.
+ *     tags:
+ *       - Salle
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Données de la salle à créer.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/CreateSalleRequest'
+ *     responses:
+ *       '201':
+ *         description: Salle créée avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.post("/salle",authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = createSalleValidation.validate(req.body)
 
@@ -48,7 +78,38 @@ export const initRoutes = (app: express.Express) => {
         } catch (error) {
             res.status(500).send({ error: "Internal error" })
         }
-    }) 
+    })
+
+    /**
+ * @swagger
+ * /salle/{id}:
+ *   get:
+ *     summary: Obtenir une salle par ID.
+ *     description: Récupère les informations d'une salle spécifique en utilisant son identifiant.
+ *     tags:
+ *       - Salle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID de la salle à récupérer.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 123
+ *     responses:
+ *       '200':
+ *         description: Succès de la requête. Retourne les informations de la salle demandée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '404':
+ *         description: La salle avec l'ID spécifié n'a pas été trouvée.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
 
     app.get("/salle/:id",authMiddleware ,async (req: Request, res: Response) => {
         const validation = getSalleByIdValidation.validate({...req.params})
@@ -73,6 +134,52 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({error: "Internal error"})
         }
     })
+
+    /**
+ * @swagger
+ * /salle:
+ *   get:
+ *     summary: Obtenir une liste de salles.
+ *     description: Récupère une liste de salles en fonction des filtres fournis.
+ *     tags:
+ *       - Salle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de résultats retournés.
+ *         schema:
+ *           type: integer
+ *         example: 10
+ *       - in: query
+ *         name: page
+ *         description: Numéro de la page pour la pagination.
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: accessHandicap
+ *         description: Permet de filtrer sur les salles à accès handicapé
+ *         schema:
+ *           type: boolean
+ *         example: true
+ *       - in: query
+ *         name: isMaintenance
+ *         description: Permet de filtrer sur les salles qui sont en maintenance
+ *         schema:
+ *           type: boolean
+ *         example: false
+ *     responses:
+ *       '200':
+ *         description: Succès de la requête. Retourne une liste de salles.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
 
     app.get("/salle", authMiddleware ,async (req: Request, res: Response) => {
         const validation = getSallesValidation.validate(req.query)
@@ -99,6 +206,45 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /salle/{id}:
+ *   patch:
+ *     summary: Mettre à jour une salle par ID.
+ *     description: Met à jour les informations d'une salle spécifique en utilisant son identifiant.
+ *     tags:
+ *       - Salle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID de la salle à mettre à jour.
+ *         schema:
+ *           type: string
+ *         example: 123
+ *     requestBody:
+ *       description: Nouvelles informations à mettre à jour pour la salle.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateSalleRequest'
+ *     responses:
+ *       '200':
+ *         description: Succès de la requête. Retourne les informations de la salle mise à jour.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '404':
+ *         description: La salle avec l'ID spécifié n'a pas été trouvée.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
+
     app.patch("/salle/:id",authMiddlewareAdmin ,async (req: Request, res: Response) => {
 
         const validation = updateSalleValidation.validate({...req.params, ...req.body})
@@ -123,6 +269,37 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({ error: "Internal error" })
         }
     })
+
+    /**
+ * @swagger
+ * /salle/{id}:
+ *   delete:
+ *     summary: Supprimer une salle par ID.
+ *     description: Supprime une salle spécifique en utilisant son identifiant.
+ *     tags:
+ *       - Salle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID de la salle à supprimer.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 123
+ *     responses:
+ *       '200':
+ *         description: Succès de la requête. Retourne un message indiquant la suppression de la salle.
+ *       '404':
+ *         description: La salle avec l'ID spécifié n'a pas été trouvée.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
 
     app.delete("/salle/:id",authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = getSalleByIdValidation.validate({...req.params})
@@ -152,6 +329,58 @@ export const initRoutes = (app: express.Express) => {
 
     //#region Routes Seance/salle
 
+    /**
+ * @swagger
+ * /seance/salle/{id}:
+ *   get:
+ *     summary: Obtenir la liste des séances pour une salle donnée.
+ *     description: Récupère la liste des séances programmées pour une salle spécifique en fonction des filtres fournis.
+ *     tags:
+ *       - Séance
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID de la salle pour laquelle obtenir les séances.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 123
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de résultats retournés.
+ *         schema:
+ *           type: integer
+ *         example: 10
+ *       - in: query
+ *         name: page
+ *         description: Numéro de la page pour la pagination.
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: dateDebutInterval
+ *         description: Permet d'afficher les séances qui ont lieu après cette date
+ *         schema:
+ *           type: date-time
+ *         example: 2024-05-11T20:00:00.000
+ *       - in: query
+ *         name: dateFinInterval
+ *         description: Permet d'afficher les séances qui ont lieu avant cette date
+ *         schema:
+ *           type: date-time
+ *         example: 2024-05-08T20:00:00.000
+ *     responses:
+ *       '200':
+ *         description: Succès de la requête. Retourne la liste des séances pour la salle spécifiée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/seance/salle/:id", authMiddleware,async (req: Request, res: Response) => {
         const validation = getSeancesSalleValidation.validate({...req.params,...req.query})
 
@@ -179,6 +408,38 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Seance
+    /**
+ * @swagger
+ * /seance:
+ *   post:
+ *     summary: Créer une nouvelle séance.
+ *     description: Crée une nouvelle séance avec les informations fournies.
+ *     tags:
+ *       - Séance
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Données de la nouvelle séance à créer.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/CreateSeanceRequest'
+ *     responses:
+ *       '201':
+ *         description: Séance créée avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '404':
+ *         description: Ressource introuvable avec l'ID fourni (film ou salle).
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
+
     app.post("/seance", authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = createSeanceValidation.validate(req.body)
 
@@ -270,6 +531,52 @@ export const initRoutes = (app: express.Express) => {
         }
     }) 
     
+    /**
+ * @swagger
+ * /seance:
+ *   get:
+ *     summary: Obtenir la liste des séances.
+ *     description: Récupère la liste des séances en fonction des filtres fournis.
+ *     tags:
+ *       - Séance
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de résultats retournés.
+ *         schema:
+ *           type: integer
+ *         example: 10
+ *       - in: query
+ *         name: page
+ *         description: Numéro de la page pour la pagination.
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: dateDebutInterval
+ *         description: Permet d'afficher les séances qui ont lieu après cette date
+ *         schema:
+ *           type: date-time
+ *         example: 2024-05-11T20:00:00.000
+ *       - in: query
+ *         name: dateFinInterval
+ *         description: Permet d'afficher les séances qui ont lieu avant cette date
+ *         schema:
+ *           type: date-time
+ *         example: 2024-05-08T20:00:00.000
+ *     responses:
+ *       '200':
+ *         description: Succès de la requête. Retourne la liste des séances selon les filtres fournis.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
+
     app.get("/seance", authMiddleware,async (req: Request, res: Response) => {
         const validation = getSeancesValidation.validate(req.query)
 
@@ -295,6 +602,45 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /seance/{id}:
+ *   patch:
+ *     summary: Mettre à jour une séance existante.
+ *     description: Met à jour une séance existante avec les informations fournies.
+ *     tags:
+ *       - Séance
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID de la séance à mettre à jour.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 123
+ *     requestBody:
+ *       description: Données à mettre à jour pour la séance spécifiée.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateSeanceRequest'
+ *     responses:
+ *       '200':
+ *         description: Séance mise à jour avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '404':
+ *         description: La séance spécifiée n'a pas été trouvée.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.patch("/seance/:id", authMiddlewareAdmin,async (req: Request, res: Response) => {
         const validation = updateSeanceValidation.validate({...req.params,...req.body})
 
@@ -403,6 +749,43 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /seance/{id}:
+ *   delete:
+ *     summary: Supprimer une séance existante.
+ *     description: Supprime une séance existante en fonction de l'ID spécifié.
+ *     tags:
+ *       - Séance
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID de la séance à supprimer.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 123
+ *     responses:
+ *       '200':
+ *         description: Séance supprimée avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Seance deleted : 123"
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '404':
+ *         description: La séance spécifiée n'a pas été trouvée.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.delete("/seance/:id", authMiddlewareAdmin,async (req: Request, res: Response) => {
         const validation = getSeanceByIdValidation.validate({...req.params})
 
@@ -440,6 +823,32 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Film
+    /**
+ * @swagger
+ * /film:
+ *   post:
+ *     summary: Créer un nouveau film.
+ *     description: Crée un nouveau film en utilisant les données fournies dans le corps de la requête.
+ *     tags:
+ *       - Film
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/CreateFilmRequest'
+ *     responses:
+ *       '201':
+ *         description: Film créé avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.post("/film",authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = createFilmValidation.validate(req.body)
 
@@ -461,6 +870,36 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /film/{id}:
+ *   get:
+ *     summary: Obtenir les détails d'un film.
+ *     description: Récupère les détails d'un film en fonction de l'ID spécifié.
+ *     tags:
+ *       - Film
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du film à récupérer.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne les détails du film demandé.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Le film spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/film/:id",authMiddleware ,async (req: Request, res: Response) => {
         const validation = getFilmByIdValidation.validate({...req.params})
 
@@ -485,6 +924,48 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /film:
+ *   get:
+ *     summary: Récupérer la liste des films.
+ *     description: Récupère une liste de films en fonction des paramètres fournis.
+ *     tags:
+ *       - Film
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de films retournés par page.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *       - in: query
+ *         name: page
+ *         description: Indique la page de résultats à récupérer.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: isDisponible
+ *         description: Filtre sur les films disponible dans le cinéma ou non
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         example: true
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne la liste des films demandée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/film", authMiddleware ,async (req: Request, res: Response) => {
         const validation = getFilmsValidation.validate(req.query)
 
@@ -509,7 +990,42 @@ export const initRoutes = (app: express.Express) => {
             res.status(500).send({ error: "Internal error" })
         }
     })
-
+/**
+ * @swagger
+ * /film/{id}:
+ *   patch:
+ *     summary: Mettre à jour les détails d'un film.
+ *     description: Met à jour les détails d'un film en fonction de l'ID spécifié.
+ *     tags:
+ *       - Film
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du film à mettre à jour.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateFilmRequest'
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne les détails du film mis à jour.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '404':
+ *         description: Le film spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.patch("/film/:id",authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = updateFilmValidation.validate({...req.params,...req.body})
 
@@ -534,6 +1050,41 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /film/{id}:
+ *   delete:
+ *     summary: Supprimer un film existant.
+ *     description: Supprime un film existant en fonction de l'ID spécifié.
+ *     tags:
+ *       - Film
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du film à supprimer.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *     responses:
+ *       '200':
+ *         description: Film supprimé avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Film supprimé : Nom du film"
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '404':
+ *         description: Le film spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.delete("/film/:id",authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = getFilmByIdValidation.validate({...req.params})
 
@@ -560,6 +1111,48 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Seance/Film
+    /**
+ * @swagger
+ * /seance/film/{id}:
+ *   get:
+ *     summary: Récupérer la liste des séances pour un film donné.
+ *     description: Récupère une liste de séances pour un film donné en fonction de l'ID spécifié.
+ *     tags:
+ *       - Séance
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du film pour lequel récupérer les séances.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de séances retournées par page.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *       - in: query
+ *         name: page
+ *         description: Indique la page de résultats à récupérer.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne la liste des séances demandée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '403':
+ *         description: Accès interdit, un jeton d'authentification valide est requis.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/seance/film/:id",authMiddleware ,async (req: Request, res: Response) => {
         const validation = getSeancesFilmValidation.validate({...req.params,...req.query})
 
@@ -587,6 +1180,32 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Roles
+    /**
+ * @swagger
+ * /role:
+ *   post:
+ *     summary: Créer un nouveau rôle.
+ *     description: Crée un nouveau rôle en utilisant les données fournies dans le corps de la requête.
+ *     tags:
+ *       - Rôle
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/CreateRoleRequest'
+ *     responses:
+ *       '201':
+ *         description: Rôle créé avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.post('/role', authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = createRoleValidation.validate(req.body)
 
@@ -608,6 +1227,36 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /role/{id}:
+ *   get:
+ *     summary: Récupérer un rôle par son ID.
+ *     description: Récupère un rôle existant en fonction de l'ID spécifié.
+ *     tags:
+ *       - Rôle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du rôle à récupérer.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne les détails du rôle demandé.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '404':
+ *         description: Le rôle spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/role/:id", authMiddlewareAdmin, async (req: Request, res: Response) => {
         const validation = getRoleByIdValidation.validate({...req.params})
 
@@ -632,6 +1281,48 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /role:
+ *   get:
+ *     summary: Récupérer la liste des rôles.
+ *     description: Récupère une liste de rôles en fonction des paramètres de requête fournis.
+ *     tags:
+ *       - Rôle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de rôles retournés par page.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *       - in: query
+ *         name: page
+ *         description: Indique la page de résultats à récupérer.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: isAdmin
+ *         description: Filtre sur les rôles admin ou non
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         example: false
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne la liste des rôles demandée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/role", authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = getRolesValidation.validate(req.query)
 
@@ -657,6 +1348,42 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /role/{id}:
+ *   patch:
+ *     summary: Mettre à jour un rôle existant.
+ *     description: Met à jour un rôle existant en fonction de l'ID spécifié et des données fournies dans le corps de la requête.
+ *     tags:
+ *       - Rôle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du rôle à mettre à jour.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateRoleRequest'
+ *     responses:
+ *       '200':
+ *         description: Rôle mis à jour avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '404':
+ *         description: Le rôle spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.patch("/role/:id", authMiddlewareAdmin ,async (req: Request, res: Response) => {
 
         const validation = updateRoleValidation.validate({...req.params, ...req.body})
@@ -682,6 +1409,41 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /role/{id}:
+ *   delete:
+ *     summary: Supprimer un rôle existant.
+ *     description: Supprime un rôle existant en fonction de l'ID spécifié.
+ *     tags:
+ *       - Rôle
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du rôle à supprimer.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *     responses:
+ *       '200':
+ *         description: Rôle supprimé avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: "Rôle supprimé : Nom du rôle"
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '404':
+ *         description: Le rôle spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.delete("/role/:id", authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = getRoleByIdValidation.validate({...req.params})
 
@@ -708,6 +1470,48 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes User
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Récupérer la liste des utilisateurs.
+ *     description: Récupère une liste d'utilisateurs en fonction des paramètres de requête fournis.
+ *     tags:
+ *       - Utilisateur
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre d'utilisateurs retournés par page.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *       - in: query
+ *         name: page
+ *         description: Indique la page de résultats à récupérer.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: isAdmin
+ *         description: Indique si l'utilisateur est un administrateur.
+ *         required: false
+ *         schema:
+ *           type: boolean
+ *         example: true
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne la liste des utilisateurs demandée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/user",authMiddlewareAdmin, async (req: Request, res: Response) => {
         const validation = getUsersValidation.validate(req.query)
 
@@ -733,6 +1537,36 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     summary: Récupérer un utilisateur par son ID.
+ *     description: Récupère un utilisateur existant en fonction de l'ID spécifié.
+ *     tags:
+ *       - Utilisateur
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID de l'utilisateur à récupérer.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 123
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne les détails de l'utilisateur demandé.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être un administrateur.
+ *       '404':
+ *         description: L'utilisateur spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/user/:id",authMiddlewareAdmin ,async (req: Request, res: Response) => {
         const validation = getUserByIdValidation.validate({...req.params})
 
@@ -759,6 +1593,34 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Achat
+    /**
+ * @swagger
+ * /achat/billet:
+ *   get:
+ *     summary: Acheter un billet.
+ *     description: Permet à un utilisateur d'acheter un billet en utilisant son compte. Le type de billet peut être spécifié dans le corps de la requête.
+ *     tags:
+ *       - Achat
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/CreateBilletRequest'
+ *     responses:
+ *       '200':
+ *         description: Billet acheté avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Utilisateur ou compte non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/achat/billet", authMiddleware, async (req: Request, res: Response) => {
         const validation = createBilletValidation.validate(req.body)
         const authHeader = req.headers['authorization'];
@@ -857,7 +1719,44 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Reservation
-
+/**
+ * @swagger
+ * /reservation/seance/{id}:
+ *   post:
+ *     summary: Réserver une place pour une séance.
+ *     description: Réserve une place pour une séance spécifique en utilisant un billet valide.
+ *     tags:
+ *       - Réservation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID de la séance à réserver.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/ReservationSeanceRequest'
+ *     responses:
+ *       '200':
+ *         description: Succès - La réservation a été effectuée avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '403':
+ *         description: La séance n'a plus de places disponibles ou le billet n'est plus valable.
+ *       '404':
+ *         description: La séance ou le billet spécifié n'a pas été trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.post("/reservation/seance/:id", authMiddleware, async (req: Request, res: Response) => {
         const validation = reservationSeanceValidation.validate({...req.params,...req.body})
 
@@ -925,6 +1824,52 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Billets
+/**
+ * @swagger
+ * /billets:
+ *   get:
+ *     summary: Récupérer la liste des billets de l'utilisateur.
+ *     description: Récupère une liste des billets de l'utilisateur authentifié en fonction des paramètres de requête fournis.
+ *     tags:
+ *       - Billets
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         description: Limite le nombre de billets retournés par page.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *       - in: query
+ *         name: page
+ *         description: Indique la page de résultats à récupérer.
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: type
+ *         description: Filtre les billets par type (1 pour un billet simple, 2 pour un billet VIP).
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 2
+ *         example: 1
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne la liste des billets de l'utilisateur demandée.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Utilisateur non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/billets", authMiddleware, async (req: Request, res: Response) => {
         const validation = getBilletsValidation.validate(req.query)
 
@@ -965,6 +1910,36 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Compte
+    /**
+ * @swagger
+ * /compte/{id}:
+ *   get:
+ *     summary: Récupérer un compte utilisateur.
+ *     description: Récupère un compte utilisateur en fonction de l'ID spécifié.
+ *     tags:
+ *       - Compte
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du compte à récupérer.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne le compte utilisateur demandé.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Compte non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/compte/:id",authMiddleware ,async (req: Request, res: Response) => {
         const validation = getCompteValidation.validate({...req.params})
 
@@ -1003,6 +1978,43 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /compte/{id}/depot:
+ *   patch:
+ *     summary: Effectuer un dépôt sur un compte utilisateur.
+ *     description: Effectue un dépôt sur un compte utilisateur en fonction de l'ID spécifié.
+ *     tags:
+ *       - Compte
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du compte sur lequel effectuer le dépôt.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *     requestBody:
+ *       description: Données sur le montant.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateCompteRequest'
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne le compte utilisateur mis à jour après le dépôt.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Compte non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.patch("/compte/:id/depot", authMiddleware ,async (req: Request, res: Response) => {
         const validation = updateCompteValidation.validate({...req.params, ...req.body})
 
@@ -1048,6 +2060,43 @@ export const initRoutes = (app: express.Express) => {
         }
     })
 
+        /**
+ * @swagger
+ * /compte/{id}/retrait:
+ *   patch:
+ *     summary: Effectuer un retrait sur un compte utilisateur.
+ *     description: Effectue un retrait sur un compte utilisateur en fonction de l'ID spécifié.
+ *     tags:
+ *       - Compte
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: L'ID du compte sur lequel effectuer le retrait.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *     requestBody:
+ *       description: Données sur le montant.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateCompteRequest'
+ *     responses:
+ *       '200':
+ *         description: Succès - Retourne le compte utilisateur mis à jour après le retrait.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Compte non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.patch("/compte/:id/retrait",authMiddleware ,async (req: Request, res: Response) => {
         const validation = updateCompteValidation.validate({...req.params, ...req.body})
 
@@ -1095,6 +2144,48 @@ export const initRoutes = (app: express.Express) => {
     //#endregion
 
     //#region Routes Transactions
+/**
+ * @swagger
+ * /transaction:
+ *   get:
+ *     summary: Récupérer la liste des transactions de l'utilisateur.
+ *     description: Renvoie la liste des transactions de l'utilisateur authentifié, filtrée par type si spécifié.
+ *     tags:
+ *       - Transaction
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         description: Numéro de page pour la pagination (optionnel).
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         description: Nombre maximum d'éléments par page (optionnel).
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *       - in: query
+ *         name: type
+ *         description: Type de transaction (optionnel).
+ *         schema:
+ *           type: string
+ *           enum: [depot, retrait, achat_billet]
+ *         example: depot
+ *     responses:
+ *       '200':
+ *         description: Liste des transactions récupérée avec succès.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Non autorisé. L'utilisateur doit être authentifié.
+ *       '404':
+ *         description: Utilisateur non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.get("/transaction", authMiddleware, async (req: Request, res: Response) => {
         const validation = getTransactionsValidation.validate(req.query)
 
@@ -1135,4 +2226,6 @@ export const initRoutes = (app: express.Express) => {
         }
     })
     //#endregion
+
+    UserHandler(app)
 }

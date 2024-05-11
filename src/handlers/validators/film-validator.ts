@@ -1,5 +1,26 @@
 import Joi from "joi"
 
+/**
+ * @swagger
+ * definitions:
+ *     CreateFilmRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           minLength: 3
+ *           example: "Nom du film"
+ *           required: true
+ *         duree:
+ *           type: integer
+ *           example: 120
+ *           required: true
+ *         isDisponible:
+ *           type: boolean
+ *           example: true
+ *           required: true
+ */
+
 export interface createFilmRequest {
     name: string,
     duree: number,
@@ -35,6 +56,31 @@ export const getFilmsValidation = Joi.object<GetFilmsRequest>({
     limit: Joi.number().min(1).optional(),
     isDisponible: Joi.bool().optional()
 })
+
+/**
+ * @swagger
+ * definitions:
+ *     UpdateFilmRequest:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: L'ID du film à mettre à jour.
+ *           example: 123
+ *         name:
+ *           type: string
+ *           minLength: 3
+ *           description: Le nouveau nom du film.
+ *           example: "Nouveau nom"
+ *         duree:
+ *           type: integer
+ *           description: La nouvelle durée du film (en minutes).
+ *           example: 120
+ *         isDisponible:
+ *           type: boolean
+ *           description: La disponibilité mise à jour du film.
+ *           example: true
+ */
 
 export interface UpdateFilmRequest {
     id: number,

@@ -11,6 +11,49 @@ import { authMiddleware } from "./middleware/auth-middleware";
 import { Compte } from "../database/entities/compte";
 
 export const UserHandler = (app: express.Express) => {
+    /**
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     summary: Créer un nouveau compte utilisateur.
+ *     description: Crée un nouveau compte utilisateur avec les informations fournies.
+ *     tags:
+ *       - Authentification
+ *     requestBody:
+ *       description: Données du nouvel utilisateur à créer.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/CreateUserRequest'
+ *     responses:
+ *       '201':
+ *         description: Compte utilisateur créé avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 email:
+ *                   type: string
+ *                   example: user@example.com
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-05-14T12:30:45.000Z"
+ *                 role:
+ *                   type: string
+ *                   example: Utilisateur
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '404':
+ *         description: Aucun rôle disponible.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.post('/auth/signup', async (req: Request, res: Response) => {
         try {
 
@@ -49,6 +92,37 @@ export const UserHandler = (app: express.Express) => {
         }
     })
 
+    /**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Authentification de l'utilisateur.
+ *     description: Authentifie un utilisateur avec les informations fournies et retourne un jeton d'authentification JWT.
+ *     tags:
+ *       - Authentification
+ *     requestBody:
+ *       description: Informations d'identification de l'utilisateur.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/LoginUserRequest'
+ *     responses:
+ *       '200':
+ *         description: Authentification réussie. Retourne un jeton d'authentification JWT.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiZW1haWxAdXNlci5jb20iLCJpYXQiOjE2MjE0NjU4NjksImV4cCI6MTYyMTU1MjI2OX0.4ESeNxP8IOnvm9Dm8ZkQaw4jMN4VhsRsBnj1hJF9MvE
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
     app.post('/auth/login', async (req: Request, res: Response) => {
         try {
 
@@ -86,6 +160,29 @@ export const UserHandler = (app: express.Express) => {
             return
         }
     })
+
+    /**
+ * @swagger
+ * /auth/logout:
+ *   delete:
+ *     summary: Déconnexion de l'utilisateur.
+ *     description: Déconnecte l'utilisateur actuellement authentifié en supprimant tous ses jetons d'authentification.
+ *     tags:
+ *       - Authentification
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Déconnexion réussie.
+ *       '400':
+ *         description: Requête invalide, voir le corps de la réponse pour plus de détails.
+ *       '401':
+ *         description: Utilisateur non autorisé.
+ *       '404':
+ *         description: Jeton d'authentification non trouvé.
+ *       '500':
+ *         description: Erreur interne du serveur.
+ */
 
     app.delete('/auth/logout', authMiddleware , async (req: Request, res: Response) => {
         try {

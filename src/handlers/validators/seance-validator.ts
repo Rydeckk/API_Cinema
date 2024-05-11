@@ -4,6 +4,36 @@ import { Film } from "../../database/entities/film"
 import { Salle } from "../../database/entities/salle"
 import { Seance } from "../../database/entities/seance"
 
+/**
+ * @swagger
+ * definitions:
+ *   CreateSeanceRequest:
+ *     type: object
+ *     properties:
+ *       type:
+ *         type: string
+ *         description: Le type de séance.
+ *         example: "3D"
+ *       dateDebut:
+ *         type: string
+ *         format: date-time
+ *         description: La date et l'heure de début de la séance au format ISO 8601.
+ *         example: "2024-05-12T10:00:00Z"
+ *       dateFin:
+ *         type: string
+ *         format: date-time
+ *         description: La date et l'heure de fin de la séance au format ISO 8601.
+ *         example: "2024-05-12T12:00:00Z"
+ *       filmId:
+ *         type: integer
+ *         description: L'ID du film associé à la séance.
+ *         example: 123
+ *       salleId:
+ *         type: integer
+ *         description: L'ID de la salle où se déroule la séance.
+ *         example: 456
+ */
+
 export interface createSeanceRequestJSON {
     type: string,
     dateDebut: Date,
@@ -25,12 +55,6 @@ export interface verifErrorRequest {
     resultat: boolean,
     errorMessage: string
 }
-
-const dateDebutMin = new Date()
-dateDebutMin.setHours(9,0,0,0)
-
-const dateFinMax = new Date()
-dateFinMax.setHours(20,0,0,0)
 
 export const createSeanceValidation = Joi.object<createSeanceRequestJSON>({
     type: Joi.string()
@@ -154,6 +178,39 @@ export const getSeancesFilmValidation = Joi.object<GetSeancesFilmRequest>({
     limit: Joi.number().min(1).optional()
 })
 
+/**
+ * @swagger
+ * definitions:
+ *   UpdateSeanceRequest:
+ *     type: object
+ *     properties:
+ *       filmId:
+ *         type: integer
+ *         description: L'ID du film associé à la séance (optionnel).
+ *         example: 123
+ *       salleId:
+ *         type: integer
+ *         description: L'ID de la salle associée à la séance (optionnel).
+ *         example: 123
+ *       nbPlacesPrises:
+ *         type: integer
+ *         description: Le nombre de places réservées pour la séance (optionnel).
+ *         example: 50
+ *       type:
+ *         type: string
+ *         description: Le type de séance (optionnel).
+ *         example: "2D"
+ *       dateDebut:
+ *         type: date-time
+ *         format: date-time
+ *         description: La date et l'heure de début de la séance (optionnel).
+ *         example: "2024-05-10T14:00:00Z"
+ *       dateFin:
+ *         type: date-time
+ *         format: date-time
+ *         description: La date et l'heure de fin de la séance (optionnel).
+ *         example: "2024-05-10T16:00:00Z"
+ */
 export interface UpdateSeanceRequestJSON {
     id: number,
     nbPlacesPrises?: number,
@@ -191,6 +248,18 @@ export interface GetSeanceByIdRequest {
 export const getSeanceByIdValidation = Joi.object<GetSeanceByIdRequest>({
     id: Joi.number().required()
 })
+
+/**
+ * @swagger
+ * definitions:
+ *   ReservationSeanceRequest:
+ *     type: object
+ *     properties:
+ *       billetId:
+ *         type: integer
+ *         description: L'ID du billet que l'utilisateur veut utilisé.
+ *         example: 123
+ */
 
 export interface reservationSeanceRequest {
     id: number,

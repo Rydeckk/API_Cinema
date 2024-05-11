@@ -1,5 +1,41 @@
 import Joi from "joi"
 
+/**
+ * @swagger
+ * definitions:
+ *   CreateSalleRequest:
+ *     type: object
+ *     properties:
+ *       name:
+ *         type: string
+ *         minLength: 3
+ *         example: Salle 1
+ *         required: true
+ *       description:
+ *         type: string
+ *         example: Salle de cinéma avec son dolby atmos
+ *         required: true
+ *       images:
+ *         type: string
+ *         example: /path/to/image.jpg
+ *         required: true
+ *       type:
+ *         type: string
+ *         example: 3D
+ *         required: true
+ *       capacite:
+ *         type: number
+ *         minimum: 15
+ *         maximum: 30
+ *         example: 20
+ *         required: true
+ *       accessHandicap:
+ *         type: boolean
+ *         example: true
+ *       isMaintenance:
+ *         type: boolean
+ *         example: false
+ */
 export interface createSalleRequest {
     name: string
     description: string
@@ -51,6 +87,38 @@ export const getSallesValidation = Joi.object<GetSallesRequest>({
     accessHandicap: Joi.bool().optional(),
     isMaintenance: Joi.bool().optional()
 })
+
+/**
+ * @swagger
+ * definitions:
+ *   UpdateSalleRequest:
+ *     type: object
+ *     properties:
+ *       name:
+ *         type: string
+ *         minLength: 3
+ *         example: Salle 1
+ *       description:
+ *         type: string
+ *         example: Salle de cinéma avec son dolby atmos
+ *       images:
+ *         type: string
+ *         example: /path/to/image.jpg
+ *       type:
+ *         type: string
+ *         example: 4DX
+ *       capacite:
+ *         type: number
+ *         minimum: 15
+ *         maximum: 30
+ *         example: 20
+ *       accessHandicap:
+ *         type: boolean
+ *         example: true
+ *       isMaintenance:
+ *         type: boolean
+ *         example: false
+ */
 
 export interface UpdateSalleRequest {
     id: number,
